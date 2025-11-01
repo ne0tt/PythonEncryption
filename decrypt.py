@@ -8,11 +8,15 @@ def load_key(key_path):
     with open(key_path, 'rb') as key_file:
         return key_file.read()
 
-def count_all_files(directory):
-    total_files = 0
-    for root, dirs, files in os.walk(directory):
-        total_files += len(files)
-    return total_files
+def count_all_files(path):
+    if os.path.isfile(path):
+        return 1
+    elif os.path.isdir(path):
+        total_files = 0
+        for root, dirs, files in os.walk(path):
+            total_files += len(files)
+        return total_files
+    return 0
 
 # Decrypt a file
 def decrypt_file(file_path, fernet):
@@ -30,24 +34,41 @@ def decrypt_directory(directory_path, fernet):
             decrypt_file(file_path, fernet)
 
 def main():
-    target_directory = input("Enter the target directory to decrypt: ")
+    target_path = input("Enter the target file or directory to decrypt: ")
 
-    if not os.path.isdir(target_directory):
-        print("The provided path is not a directory")
+    if not os.path.exists(target_path):
+        print("The provided path does not exist")
         return
 
-    key_path = 'encryption_key.key'  # Path to the encryption key
+    key_path = 'encryption.key'  # Default path to the encryption key
+    
+    # Check if the default key file exists, if not ask user for key path
+    if not os.path.exists(key_path):
+        key_path = input("Encryption key file not found. Enter the path to your encryption key file: ")
+        if not os.path.exists(key_path):
+            print("The provided key file does not exist")
+            return
 
-    fileCount = count_all_files(target_directory)
+    fileCount = count_all_files(target_path)
 
-    # Load the encryption key
-    key = load_key(key_path)
-    fernet = Fernet(key)
+    try:
+        # Load the encryption key
+        key = load_key(key_path)
+        fernet = Fernet(key)
+    except Exception as e:
+        print(f"Error loading encryption key: {e}")
+        return
 
-    # Decrypt the directory
-    decrypt_directory(target_directory, fernet)
-
-    print (str(fileCount) +  " Files Decrypted")
+    # Decrypt based on whether it's a file or directory
+    try:
+        if os.path.isfile(target_path):
+            decrypt_file(target_path, fernet)
+            print("1 File Decrypted")
+        elif os.path.isdir(target_path):
+            decrypt_directory(target_path, fernet)
+            print(str(fileCount) + " Files Decrypted")
+    except Exception as e:
+        print(f"Error during decryption: {e}")
 
 if __name__ == '__main__':
     main()

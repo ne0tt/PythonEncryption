@@ -11,7 +11,7 @@ def save_key(key, key_path):
         key_file.write(key)
 
 def main():
-    key_path = 'encryption_key.key'  # Path to save the encryption key
+    key_path = 'encryption.key'  # Path to save the encryption key
 
     # Generate and save the encryption key
     key = generate_key()
