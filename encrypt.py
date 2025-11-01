@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 from cryptography.fernet import Fernet
 from time import sleep
@@ -34,7 +35,13 @@ def encrypt_directory(directory_path, fernet):
             encrypt_file(file_path, fernet)
 
 def main():
-    target_path = input("Enter the target file or directory to encrypt: ")
+    target_path = input("Enter the target file or directory to encrypt: ").strip()
+    
+    # Expand user path (handles ~ on Unix and %USERPROFILE% on Windows)
+    target_path = os.path.expanduser(target_path)
+    
+    # Normalize path separators for the current OS
+    target_path = os.path.normpath(target_path)
 
     if not os.path.exists(target_path):
         print("The provided path does not exist")
@@ -44,7 +51,10 @@ def main():
     
     # Check if the default key file exists, if not ask user for key path
     if not os.path.exists(key_path):
-        key_path = input("Encryption key file not found. Enter the path to your encryption key file: ")
+        key_input = input("Encryption key file not found. Enter the path to your encryption key file: ").strip()
+        key_path = os.path.expanduser(key_input)
+        key_path = os.path.normpath(key_path)
+        
         if not os.path.exists(key_path):
             print("The provided key file does not exist")
             return
@@ -66,7 +76,7 @@ def main():
             print("1 File Encrypted")
         elif os.path.isdir(target_path):
             encrypt_directory(target_path, fernet)
-            print(str(fileCount) + " Files Encrypted")
+            print(f"{fileCount} Files Encrypted")
     except Exception as e:
         print(f"Error during encryption: {e}")
 
